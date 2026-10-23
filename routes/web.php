@@ -19,6 +19,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::livewire('photos', 'pages::admin.photos')->name('admin.photos');
     Route::livewire('business', 'pages::admin.business')->name('admin.business');
     Route::livewire('transactions', 'pages::admin.transactions')->name('admin.transactions');
+    Route::livewire('reviews', 'pages::admin.reviews')->name('admin.reviews');
+    Route::livewire('faqs', 'pages::admin.faqs')->name('admin.faqs');
     Route::get('transactions/{transaction}/receipt', TransactionReceiptController::class)->name('admin.transactions.receipt');
 });
 

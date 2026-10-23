@@ -1,5 +1,6 @@
 <x-layouts::site title="Privacy policy" description="How {{ App\Models\Setting::get('business_name') }} handles your personal information.">
     <section class="page-hero">
+        <x-currency-fx variant="drift" />
         <div class="container">
             <h1>Privacy policy</h1>
         </div>

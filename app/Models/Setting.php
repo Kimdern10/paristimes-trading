@@ -147,6 +147,14 @@ class Setting extends Model
     }
 
     /**
+     * Get the Google Maps address used inside the contact page's map frame.
+     */
+    public static function mapEmbedUrl(): string
+    {
+        return 'https://www.google.com/maps?q='.rawurlencode(self::address().', Lagos, Nigeria').'&output=embed';
+    }
+
+    /**
      * When the owner last saved the rates, if ever.
      */
     public static function ratesUpdatedAt(): ?CarbonImmutable
@@ -180,6 +188,8 @@ class Setting extends Model
             This website does not have forms or accounts for customers. When you tap a WhatsApp or call button, you contact us directly through WhatsApp or your phone, and we see your **phone number**, your **name on WhatsApp** and the **messages you send**.
 
             Our website host keeps standard server logs, such as your IP address and the pages visited, to keep the website secure.
+
+            The map on our contact page only loads from Google Maps when you tap "Show map". Google may then collect information as described in its own privacy policy.
 
             ## Why we use it
 

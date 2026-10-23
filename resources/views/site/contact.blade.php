@@ -7,6 +7,7 @@
 
 <x-layouts::site title="Contact us" description="Visit {{ $business }} at {{ Setting::address() }}, call {{ Setting::get('phone') }} or chat with us on WhatsApp.">
     <section class="page-hero">
+        <x-currency-fx variant="drift" />
         <div class="container">
             <span class="eyebrow"><x-site-icon name="phone" /> Contact</span>
             <h1>Talk to us today</h1>
@@ -69,8 +70,23 @@
                     @endif
                 </div>
             @endif
+
+            <div class="map reveal" data-map="{{ Setting::mapEmbedUrl() }}" data-map-title="Map showing {{ Setting::address() }}">
+                <x-currency-fx variant="drift" class="fx-soft" />
+                <div class="map-inner">
+                    <span class="card-icon"><x-site-icon name="map-pin" /></span>
+                    <h2>{{ Setting::get('address_street') }}, {{ Setting::get('address_area') }}</h2>
+                    <p>The map loads from Google when you tap the button.</p>
+                    <button type="button" class="btn btn-gold">
+                        <x-site-icon name="map-pin" />
+                        Show map
+                    </button>
+                </div>
+            </div>
         </div>
     </section>
+
+    <x-faq-list :faqs="$faqs" alt />
 
     <x-cta-band title="Get today's rate in minutes" />
 </x-layouts::site>

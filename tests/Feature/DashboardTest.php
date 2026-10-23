@@ -11,10 +11,12 @@ test('the owner can visit every admin page', function (string $route) {
     $this->actingAs(User::factory()->admin()->create());
 
     $this->get(route($route))->assertOk();
-})->with(['dashboard', 'admin.photos', 'admin.business']);
+})->with('admin pages');
 
 test('users who are not the owner cannot open the admin', function (string $route) {
     $this->actingAs(User::factory()->create());
 
     $this->get(route($route))->assertForbidden();
-})->with(['dashboard', 'admin.photos', 'admin.business']);
+})->with('admin pages');
+
+dataset('admin pages', ['dashboard', 'admin.transactions', 'admin.reviews', 'admin.faqs', 'admin.photos', 'admin.business']);

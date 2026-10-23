@@ -65,6 +65,7 @@
         @fonts
 
         @vite(['resources/css/site.css', 'resources/js/site.js'])
+        @livewireStyles
 
         <script type="application/ld+json">@json($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)</script>
     </head>
@@ -75,7 +76,7 @@
         <header class="site-header" data-header>
             <div class="container">
                 <nav class="nav" aria-label="Main">
-                    <a class="logo" href="{{ route('home') }}" aria-label="{{ $business }}, home">
+                    <a class="logo" href="{{ route('home') }}" wire:navigate.hover aria-label="{{ $business }}, home">
                         <x-logo-mark />
                         <span class="logo-text">
                             <span class="logo-name">PARISTIMES TRADING</span>
@@ -85,7 +86,7 @@
 
                     <ul class="nav-links">
                         @foreach ($links as $route => $label)
-                            <li><a href="{{ route($route) }}" @if (request()->routeIs($route)) aria-current="page" @endif>{{ $label }}</a></li>
+                            <li><a href="{{ route($route) }}" wire:navigate.hover @if (request()->routeIs($route)) aria-current="page" @endif>{{ $label }}</a></li>
                         @endforeach
                     </ul>
 
@@ -103,7 +104,7 @@
                 <div class="mobile-menu" id="mobile-menu">
                     <ul>
                         @foreach ($links as $route => $label)
-                            <li><a href="{{ route($route) }}" @if (request()->routeIs($route)) aria-current="page" @endif>{{ $label }}</a></li>
+                            <li><a href="{{ route($route) }}" wire:navigate.hover @if (request()->routeIs($route)) aria-current="page" @endif>{{ $label }}</a></li>
                         @endforeach
                     </ul>
                     <a class="btn btn-whatsapp" href="{{ $whatsappUrl }}" target="_blank" rel="noopener">
@@ -123,7 +124,7 @@
             <div class="container">
                 <div class="footer-grid">
                     <div>
-                        <a class="logo" href="{{ route('home') }}" aria-label="{{ $business }}, home">
+                        <a class="logo" href="{{ route('home') }}" wire:navigate.hover aria-label="{{ $business }}, home">
                             <x-logo-mark />
                             <span class="logo-text">
                                 <span class="logo-name">PARISTIMES TRADING</span>
@@ -137,9 +138,9 @@
                         <h2>Pages</h2>
                         <ul>
                             @foreach ($links as $route => $label)
-                                <li><a href="{{ route($route) }}">{{ $label }}</a></li>
+                                <li><a href="{{ route($route) }}" wire:navigate.hover>{{ $label }}</a></li>
                             @endforeach
-                            <li><a href="{{ route('privacy') }}">Privacy policy</a></li>
+                            <li><a href="{{ route('privacy') }}" wire:navigate.hover>Privacy policy</a></li>
                         </ul>
                     </div>
 
@@ -178,5 +179,7 @@
             <x-site-icon name="whatsapp" />
             <span>Chat</span>
         </a>
+
+        @livewireScripts
     </body>
 </html>

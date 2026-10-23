@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Currency;
+use App\Models\RateSnapshot;
 use App\Models\Setting;
+use App\Support\RatesMessage;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
@@ -40,6 +42,15 @@ new #[Title('Exchange rates')] class extends Component {
     public function currencies(): Collection
     {
         return Currency::query()->orderBy('sort_order')->orderBy('code')->get();
+    }
+
+    /**
+     * Today's rates as a message to paste into WhatsApp or a Status.
+     */
+    #[Computed]
+    public function whatsappText(): string
+    {
+        return RatesMessage::text();
     }
 
     /**
@@ -82,8 +93,9 @@ new #[Title('Exchange rates')] class extends Component {
         }
 
         Setting::put(['rates_updated_at' => now()->toIso8601String()]);
+        RateSnapshot::recordToday();
 
-        unset($this->currencies);
+        unset($this->currencies, $this->whatsappText);
         $this->loadRates();
 
         Flux::toast(variant: 'success', text: __('Rates saved. The website now shows them.'));
@@ -225,6 +237,28 @@ new #[Title('Exchange rates')] class extends Component {
             </div>
         @endif
     </form>
+
+    <flux:card class="mt-8 space-y-4" x-data="{ copied: false }">
+        <div>
+            <flux:heading size="lg">{{ __('Share today\'s rates on WhatsApp') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Copy this message and paste it into your WhatsApp Status, groups or chats. It updates when you save new rates.') }}</flux:text>
+        </div>
+
+        <flux:textarea readonly rows="10" x-ref="message" class="font-mono text-sm">{{ $this->whatsappText }}</flux:textarea>
+
+        <div class="flex flex-wrap gap-2">
+            <flux:button
+                icon="clipboard-document"
+                x-on:click="navigator.clipboard.writeText($refs.message.value).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
+            >
+                <span x-show="! copied">{{ __('Copy message') }}</span>
+                <span x-show="copied" x-cloak>{{ __('Copied!') }}</span>
+            </flux:button>
+            <flux:button icon="paper-airplane" :href="'https://wa.me/?text='.rawurlencode($this->whatsappText)" target="_blank">
+                {{ __('Open in WhatsApp') }}
+            </flux:button>
+        </div>
+    </flux:card>
 
     <flux:modal name="add-currency" class="md:w-96">
         <form wire:submit="addCurrency" class="space-y-6">

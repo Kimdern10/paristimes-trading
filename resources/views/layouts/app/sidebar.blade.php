@@ -18,6 +18,12 @@
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.transactions')" :current="request()->routeIs('admin.transactions')" wire:navigate>
                         {{ __('Transactions') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="star" :href="route('admin.reviews')" :current="request()->routeIs('admin.reviews')" wire:navigate>
+                        {{ __('Customer reviews') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="question-mark-circle" :href="route('admin.faqs')" :current="request()->routeIs('admin.faqs')" wire:navigate>
+                        {{ __('Questions (FAQ)') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="photo" :href="route('admin.photos')" :current="request()->routeIs('admin.photos')" wire:navigate>
                         {{ __('Shop photos') }}
                     </flux:sidebar.item>

@@ -4,6 +4,7 @@
 
 <x-layouts::site title="Services" description="We buy and sell US Dollars, British Pounds and Euros in Idumota, Lagos. Fast transactions, secure deals and online payment with Paystack or Flutterwave.">
     <section class="page-hero">
+        <x-currency-fx variant="drift" />
         <div class="container">
             <span class="eyebrow"><x-site-icon name="exchange" /> Services</span>
             <h1>Currency exchange made simple</h1>
@@ -82,7 +83,7 @@
                 </div>
             </div>
             <div class="hero-actions actions-center">
-                <a class="btn btn-ghost" href="{{ route('home') }}#calculator">
+                <a class="btn btn-ghost" href="{{ route('home') }}#calculator" wire:navigate.hover>
                     Check today's rates
                     <x-site-icon name="arrow-right" />
                 </a>

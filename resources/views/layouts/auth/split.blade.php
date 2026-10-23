@@ -19,7 +19,7 @@
         </style>
     </head>
     <body class="min-h-screen bg-zinc-50 antialiased dark:bg-[#060e22]">
-        <div class="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
+        <div class="grid min-h-dvh grid-rows-[auto_1fr] lg:grid-cols-[1.05fr_1fr] lg:grid-rows-none">
             <aside class="relative isolate flex flex-col overflow-hidden bg-[#0a1a3d] px-6 py-8 text-white sm:px-10 lg:min-h-dvh lg:py-10">
                 <div class="auth-blob pointer-events-none absolute -top-40 -right-24 -z-10 size-[30rem] rounded-full bg-[#c99a2e]/35 blur-3xl"></div>
                 <div class="auth-blob pointer-events-none absolute -bottom-48 -left-32 -z-10 size-[32rem] rounded-full bg-[#183470] blur-3xl [animation-delay:-6s]"></div>

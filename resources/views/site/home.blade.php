@@ -15,16 +15,7 @@
 
 <x-layouts::site>
     <section class="hero">
-        <div class="hero-fx" aria-hidden="true">
-            <span class="blob blob-1"></span>
-            <span class="blob blob-2"></span>
-            <span class="blob blob-3"></span>
-            <span class="float-sym sym-1">$</span>
-            <span class="float-sym sym-2">£</span>
-            <span class="float-sym sym-3">€</span>
-            <span class="float-sym sym-4">₦</span>
-            <span class="float-sym sym-5">$</span>
-        </div>
+        <x-currency-fx />
         <div class="container hero-grid">
             <div>
                 <span class="eyebrow"><x-site-icon name="map-pin" /> {{ Setting::get('address_area') }}</span>
@@ -131,6 +122,62 @@
         </section>
     @endif
 
+    @if ($trends !== [])
+        <x-rate-trend :trends="$trends" />
+    @endif
+
+    @if ($currencies->isNotEmpty())
+        <section class="hscroll" aria-labelledby="hscroll-title">
+            <div class="container">
+                <div class="hscroll-head reveal">
+                    <span class="kicker">Currencies we trade</span>
+                    <h2 id="hscroll-title">Buy or sell at today's rate</h2>
+                </div>
+                <div class="hscroll-track">
+                    @foreach ($currencies as $currency)
+                        <article class="h-card">
+                            <span class="h-card-symbol" aria-hidden="true">{{ $currency->symbol ?: $currency->code }}</span>
+                            <span class="h-card-code">{{ $currency->code }}</span>
+                            <h3>{{ $currency->name }}</h3>
+                            <dl class="h-card-rates">
+                                <div><dt>We buy</dt><dd>{{ App\Models\Currency::naira($currency->buy_rate) }}</dd></div>
+                                <div><dt>We sell</dt><dd>{{ App\Models\Currency::naira($currency->sell_rate) }}</dd></div>
+                            </dl>
+                            <a class="btn btn-gold btn-sm" href="{{ Setting::whatsappUrl('Hello '.$business.', I want to exchange '.$currency->code.'. What is your rate today?') }}" target="_blank" rel="noopener">
+                                <x-site-icon name="whatsapp" />
+                                Exchange {{ $currency->code }}
+                            </a>
+                        </article>
+                    @endforeach
+                    <article class="h-card h-card-light">
+                        <span class="h-card-symbol" aria-hidden="true">₦</span>
+                        <span class="h-card-code">Pay online</span>
+                        <h3>Paystack or Flutterwave</h3>
+                        <p>Agree the rate on WhatsApp, then pay securely online or at our shop.</p>
+                    </article>
+                    <article class="h-card h-card-light">
+                        <span class="h-card-symbol" aria-hidden="true">?</span>
+                        <span class="h-card-code">Something else?</span>
+                        <h3>Need another currency?</h3>
+                        <p>Ask us on WhatsApp. We will tell you if we can help today.</p>
+                        <a class="btn btn-whatsapp btn-sm" href="{{ Setting::whatsappUrl('Hello '.$business.', do you exchange another currency?') }}" target="_blank" rel="noopener">
+                            <x-site-icon name="whatsapp" />
+                            Ask us
+                        </a>
+                    </article>
+                </div>
+            </div>
+        </section>
+    @endif
+
+    <div class="marquee-band" aria-hidden="true">
+        <div class="marquee-track">
+            @foreach ([1, 2] as $copy)
+                <span>Dollars <i>✦</i> Pounds <i>✦</i> Euros <i>✦</i> Naira <i>✦</i> Fast <i>✦</i> Secure <i>✦</i> Idumota <i>✦</i>&nbsp;</span>
+            @endforeach
+        </div>
+    </div>
+
     @if ($dealStats['count'] > 0)
         <section class="section deals-section">
             <div class="container">
@@ -177,7 +224,7 @@
                 <p class="prose-lead">At {{ $business }}, we provide professional foreign currency exchange services with competitive rates and fast transactions.</p>
                 <p class="prose-lead">We help individuals and businesses exchange currencies safely and efficiently.</p>
                 <div class="hero-actions">
-                    <a class="btn btn-ghost" href="{{ route('services') }}">
+                    <a class="btn btn-ghost" href="{{ route('services') }}" wire:navigate.hover>
                         Our services
                         <x-site-icon name="arrow-right" />
                     </a>
@@ -260,6 +307,10 @@
             </div>
         </div>
     </section>
+
+    <x-reviews-section :reviews="$reviews" />
+
+    <x-faq-list :faqs="$faqs" alt />
 
     <section class="section">
         <div class="container">

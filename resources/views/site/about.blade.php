@@ -6,6 +6,7 @@
 
 <x-layouts::site title="About us" description="{{ $business }} is a Lagos-based foreign currency exchange business in Idumota, serving individuals, traders and businesses.">
     <section class="page-hero">
+        <x-currency-fx variant="drift" />
         <div class="container">
             <span class="eyebrow"><x-site-icon name="users" /> About us</span>
             <h1>A trusted currency exchange in the heart of Idumota</h1>

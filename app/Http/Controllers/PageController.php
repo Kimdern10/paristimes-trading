@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Currency;
+use App\Models\Faq;
 use App\Models\Photo;
+use App\Models\Review;
 use App\Models\Setting;
 use App\Models\Transaction;
+use App\Support\RateChart;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -24,8 +27,13 @@ class PageController extends Controller
      */
     public function home(): View
     {
+        $currencies = Currency::query()->shown()->get();
+
         return view('site.home', [
-            'currencies' => Currency::query()->shown()->get(),
+            'currencies' => $currencies,
+            'trends' => RateChart::forCurrencies($currencies),
+            'reviews' => Review::query()->published()->get(),
+            'faqs' => Faq::query()->published()->get(),
             'ratesUpdatedAt' => Setting::ratesUpdatedAt(),
             'photos' => Photo::query()->orderBy('sort_order')->orderByDesc('id')->limit(3)->get(),
             'recentDeals' => Transaction::query()->shownOnWebsite()->limit(6)->get(),
@@ -61,7 +69,9 @@ class PageController extends Controller
      */
     public function contact(): View
     {
-        return view('site.contact');
+        return view('site.contact', [
+            'faqs' => Faq::query()->published()->get(),
+        ]);
     }
 
     /**
