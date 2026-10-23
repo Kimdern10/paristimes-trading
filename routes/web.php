@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\TransactionReceiptController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(PageController::class)->group(function () {
@@ -17,6 +18,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::livewire('/', 'pages::admin.rates')->name('dashboard');
     Route::livewire('photos', 'pages::admin.photos')->name('admin.photos');
     Route::livewire('business', 'pages::admin.business')->name('admin.business');
+    Route::livewire('transactions', 'pages::admin.transactions')->name('admin.transactions');
+    Route::get('transactions/{transaction}/receipt', TransactionReceiptController::class)->name('admin.transactions.receipt');
 });
 
 require __DIR__.'/settings.php';

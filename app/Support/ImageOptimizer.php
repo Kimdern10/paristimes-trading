@@ -22,18 +22,18 @@ class ImageOptimizer
     public const int QUALITY = 80;
 
     /**
-     * Store the upload as WebP and return the path of the large copy.
+     * Store the upload as WebP on the given disk and return the path of the large copy.
      *
      * The small copy is saved next to it with a "-sm" suffix.
      */
-    public function store(UploadedFile $file, string $directory = 'photos'): string
+    public function store(UploadedFile $file, string $directory = 'photos', string $disk = 'public'): string
     {
         $source = $this->load($file);
 
         $path = trim($directory, '/').'/'.Str::lower((string) Str::ulid()).'.webp';
 
-        Storage::disk('public')->put($path, $this->encode($source, self::LARGE_WIDTH));
-        Storage::disk('public')->put(Str::replaceLast('.webp', '-sm.webp', $path), $this->encode($source, self::SMALL_WIDTH));
+        Storage::disk($disk)->put($path, $this->encode($source, self::LARGE_WIDTH));
+        Storage::disk($disk)->put(Str::replaceLast('.webp', '-sm.webp', $path), $this->encode($source, self::SMALL_WIDTH));
 
         return $path;
     }

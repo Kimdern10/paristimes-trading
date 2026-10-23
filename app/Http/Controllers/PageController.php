@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\Photo;
 use App\Models\Setting;
+use App\Models\Transaction;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -27,6 +28,11 @@ class PageController extends Controller
             'currencies' => Currency::query()->shown()->get(),
             'ratesUpdatedAt' => Setting::ratesUpdatedAt(),
             'photos' => Photo::query()->orderBy('sort_order')->orderByDesc('id')->limit(3)->get(),
+            'recentDeals' => Transaction::query()->shownOnWebsite()->limit(6)->get(),
+            'dealStats' => [
+                'count' => Transaction::query()->where('is_public', true)->count(),
+                'volume' => (float) Transaction::query()->where('is_public', true)->sum('naira_total'),
+            ],
         ]);
     }
 

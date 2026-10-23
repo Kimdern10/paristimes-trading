@@ -1467,3 +1467,423 @@ h2 + .prose-lead,
 .brand-panel p {
     color: rgb(255 255 255 / 75%);
 }
+
+/* Scroll progress bar */
+
+.scroll-progress {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 70;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-500), var(--gold-300));
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left;
+}
+
+/* Header gets a stronger shadow once the page scrolls */
+
+.site-header {
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.site-header.is-scrolled {
+    background: rgb(5 13 31 / 97%);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
+}
+
+/* Rates ticker */
+
+.ticker {
+    overflow: hidden;
+    border-top: 1px solid rgb(255 255 255 / 8%);
+    background: rgb(0 0 0 / 22%);
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.ticker-track {
+    display: flex;
+    width: max-content;
+    animation: ticker 28s linear infinite;
+}
+
+.ticker:hover .ticker-track {
+    animation-play-state: paused;
+}
+
+.ticker-list {
+    display: flex;
+    flex: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ticker-list li {
+    display: inline-flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.45rem 1.75rem;
+    border-right: 1px solid rgb(255 255 255 / 10%);
+    color: rgb(255 255 255 / 70%);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.ticker-list strong {
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+.ticker-code {
+    color: var(--gold-300);
+    font-weight: 700;
+}
+
+@keyframes ticker {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* Hero background effects */
+
+.hero-fx {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.hero > .container {
+    position: relative;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.55;
+    animation: blob 18s ease-in-out infinite alternate;
+}
+
+.blob-1 {
+    top: -12rem;
+    right: -6rem;
+    width: 32rem;
+    height: 32rem;
+    background: rgb(201 154 46 / 45%);
+}
+
+.blob-2 {
+    bottom: -14rem;
+    left: -10rem;
+    width: 34rem;
+    height: 34rem;
+    background: rgb(24 52 112 / 90%);
+    animation-duration: 22s;
+}
+
+.blob-3 {
+    top: 30%;
+    left: 40%;
+    width: 18rem;
+    height: 18rem;
+    background: rgb(31 170 89 / 22%);
+    animation-duration: 26s;
+}
+
+@keyframes blob {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+        transform: translate(4rem, 3rem) scale(1.12);
+    }
+
+    100% {
+        transform: translate(-3rem, -2rem) scale(0.95);
+    }
+}
+
+.float-sym {
+    position: absolute;
+    bottom: -4rem;
+    color: rgb(236 208 138 / 16%);
+    font-weight: 700;
+    line-height: 1;
+    animation: float-up linear infinite;
+}
+
+.sym-1 {
+    left: 6%;
+    font-size: 4rem;
+    animation-duration: 16s;
+}
+
+.sym-2 {
+    left: 28%;
+    font-size: 2.5rem;
+    animation-duration: 21s;
+    animation-delay: -6s;
+}
+
+.sym-3 {
+    left: 52%;
+    font-size: 3.25rem;
+    animation-duration: 18s;
+    animation-delay: -11s;
+}
+
+.sym-4 {
+    left: 74%;
+    font-size: 4.5rem;
+    animation-duration: 24s;
+    animation-delay: -3s;
+}
+
+.sym-5 {
+    left: 90%;
+    font-size: 2.25rem;
+    animation-duration: 19s;
+    animation-delay: -14s;
+}
+
+@keyframes float-up {
+    from {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    to {
+        transform: translateY(-48rem) rotate(25deg);
+        opacity: 0;
+    }
+}
+
+/* Headline words slide up one after another */
+
+.hero h1 .word {
+    display: inline-block;
+    animation: word-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 70ms + 100ms);
+}
+
+@keyframes word-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.6em);
+    }
+}
+
+/* Rates card tilt (site.js sets --rx and --ry) */
+
+.rates-card {
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 0.25s ease;
+    will-change: transform;
+}
+
+/* Gold shine that sweeps across buttons on hover */
+
+.btn {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 35%) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.6s ease;
+}
+
+.btn:hover::after {
+    transform: translateX(120%);
+}
+
+.btn-whatsapp,
+.btn-gold {
+    z-index: 0;
+}
+
+.wa-float {
+    animation: wa-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes wa-pulse {
+    0%,
+    100% {
+        box-shadow: 0 10px 30px rgb(18 140 74 / 45%), 0 0 0 0 rgb(31 170 89 / 45%);
+    }
+
+    50% {
+        box-shadow: 0 10px 30px rgb(18 140 74 / 45%), 0 0 0 12px rgb(31 170 89 / 0%);
+    }
+}
+
+/* Recent deals and stats */
+
+.stats {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 760px) {
+    .stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.stat {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background:
+        radial-gradient(20rem 10rem at 100% 0%, rgb(221 178 71 / 20%), transparent 60%),
+        linear-gradient(160deg, var(--navy-800), var(--navy-950));
+    color: #fff;
+    text-align: center;
+}
+
+.stat-value {
+    color: var(--gold-300);
+    font-size: clamp(1.9rem, 6vw, 2.6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.stat-label {
+    color: rgb(255 255 255 / 72%);
+}
+
+.deals {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+@media (min-width: 760px) {
+    .deals {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1100px) {
+    .deals {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.deal {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.25rem 0.9rem;
+    align-items: center;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.deal-type {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    min-width: 64px;
+    padding: 0.5rem 0.6rem;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.deal-type.is-buy {
+    background: rgb(31 170 89 / 12%);
+    color: var(--green-600);
+}
+
+@media (prefers-color-scheme: dark) {
+    .deal-type.is-buy {
+        color: var(--green-500);
+    }
+}
+
+.deal-amount {
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.deal-amount small {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.deal-rate,
+.deal-date {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.deal-rate {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.deal-date {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+/* Staggered reveal for grids (site.js sets --i on each child) */
+
+.js .reveal-stagger > .reveal {
+    transition-delay: calc(var(--i, 0) * 90ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ticker-track,
+    .blob,
+    .float-sym,
+    .hero h1 .word,
+    .wa-float {
+        animation: none;
+    }
+
+    .float-sym {
+        display: none;
+    }
+
+    .rates-card {
+        transform: none;
+    }
+
+    .btn::after {
+        display: none;
+    }
+}

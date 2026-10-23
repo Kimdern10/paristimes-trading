@@ -7,7 +7,7 @@
     $isToday = $updatedAt?->isToday() ?? false;
 @endphp
 
-<div {{ $attributes->merge(['class' => 'rates-card']) }}>
+<div {{ $attributes->merge(['class' => 'rates-card']) }} data-tilt>
     <div class="rates-head">
         <h2>Today's rates</h2>
         @if ($updatedAt)
@@ -40,8 +40,8 @@
                         </span>
                     </td>
                     @if ($currency->hasRates())
-                        <td>{{ Currency::naira($currency->buy_rate) }}</td>
-                        <td>{{ Currency::naira($currency->sell_rate) }}</td>
+                        <td><span @if ($currency->buy_rate !== null) data-count="{{ $currency->buy_rate }}" data-prefix="₦" @endif>{{ Currency::naira($currency->buy_rate) }}</span></td>
+                        <td><span @if ($currency->sell_rate !== null) data-count="{{ $currency->sell_rate }}" data-prefix="₦" @endif>{{ Currency::naira($currency->sell_rate) }}</span></td>
                     @else
                         <td colspan="2"><span class="rate-ask">Ask on WhatsApp</span></td>
                     @endif

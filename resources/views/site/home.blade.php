@@ -15,6 +15,16 @@
 
 <x-layouts::site>
     <section class="hero">
+        <div class="hero-fx" aria-hidden="true">
+            <span class="blob blob-1"></span>
+            <span class="blob blob-2"></span>
+            <span class="blob blob-3"></span>
+            <span class="float-sym sym-1">$</span>
+            <span class="float-sym sym-2">£</span>
+            <span class="float-sym sym-3">€</span>
+            <span class="float-sym sym-4">₦</span>
+            <span class="float-sym sym-5">$</span>
+        </div>
         <div class="container hero-grid">
             <div>
                 <span class="eyebrow"><x-site-icon name="map-pin" /> {{ Setting::get('address_area') }}</span>
@@ -117,6 +127,44 @@
                         <span class="calc-rate">This is an estimate. We confirm the final rate before every deal.</span>
                     </div>
                 </form>
+            </div>
+        </section>
+    @endif
+
+    @if ($dealStats['count'] > 0)
+        <section class="section deals-section">
+            <div class="container">
+                <div class="section-head center reveal">
+                    <span class="kicker">Recent deals</span>
+                    <h2>Real exchanges, done fast</h2>
+                    <p>A few of the deals we completed recently. Customer details are always kept private.</p>
+                </div>
+
+                <div class="stats reveal">
+                    <div class="stat">
+                        <span class="stat-value" data-count="{{ $dealStats['count'] }}">{{ number_format($dealStats['count']) }}</span>
+                        <span class="stat-label">deals completed</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" data-count="{{ round($dealStats['volume']) }}" data-prefix="₦">₦{{ number_format($dealStats['volume']) }}</span>
+                        <span class="stat-label">exchanged in naira</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" data-count="{{ $currencies->count() }}">{{ $currencies->count() }}</span>
+                        <span class="stat-label">currencies traded</span>
+                    </div>
+                </div>
+
+                <ul class="deals reveal-stagger">
+                    @foreach ($recentDeals as $deal)
+                        <li class="deal reveal">
+                            <span @class(['deal-type', 'is-buy' => $deal->type === App\Enums\TransactionType::Buy])>{{ $deal->type->shortLabel() }}</span>
+                            <span class="deal-amount">{{ $deal->formattedAmount() }} <small>{{ $deal->currency_code }}</small></span>
+                            <span class="deal-rate">at {{ App\Models\Currency::naira($deal->rate) }}</span>
+                            <time class="deal-date" datetime="{{ $deal->traded_on->toDateString() }}">{{ $deal->traded_on->isToday() ? 'Today' : $deal->traded_on->format('j M Y') }}</time>
+                        </li>
+                    @endforeach
+                </ul>
             </div>
         </section>
     @endif

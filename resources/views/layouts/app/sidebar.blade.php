@@ -15,6 +15,9 @@
                     <flux:sidebar.item icon="banknotes" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Exchange rates') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.transactions')" :current="request()->routeIs('admin.transactions')" wire:navigate>
+                        {{ __('Transactions') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="photo" :href="route('admin.photos')" :current="request()->routeIs('admin.photos')" wire:navigate>
                         {{ __('Shop photos') }}
                     </flux:sidebar.item>

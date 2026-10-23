@@ -70,6 +70,7 @@
     </head>
     <body>
         <a class="skip-link" href="#main">Skip to content</a>
+        <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
 
         <header class="site-header" data-header>
             <div class="container">
@@ -111,6 +112,7 @@
                     </a>
                 </div>
             </div>
+            <x-rates-ticker />
         </header>
 
         <main id="main">
