@@ -11,9 +11,15 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
+                <flux:sidebar.group :heading="__('Website')" class="grid">
+                    <flux:sidebar.item icon="banknotes" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                        {{ __('Exchange rates') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="photo" :href="route('admin.photos')" :current="request()->routeIs('admin.photos')" wire:navigate>
+                        {{ __('Shop photos') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="building-storefront" :href="route('admin.business')" :current="request()->routeIs('admin.business')" wire:navigate>
+                        {{ __('Business details') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
@@ -21,12 +27,8 @@
             <flux:spacer />
 
             <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
+                <flux:sidebar.item icon="globe-alt" :href="route('home')" target="_blank">
+                    {{ __('View website') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 

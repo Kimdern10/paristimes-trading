@@ -7,10 +7,14 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated users can visit the dashboard', function () {
-    $user = User::factory()->create();
-    $this->actingAs($user);
+test('the owner can visit every admin page', function (string $route) {
+    $this->actingAs(User::factory()->admin()->create());
 
-    $response = $this->get(route('dashboard'));
-    $response->assertOk();
-});
+    $this->get(route($route))->assertOk();
+})->with(['dashboard', 'admin.photos', 'admin.business']);
+
+test('users who are not the owner cannot open the admin', function (string $route) {
+    $this->actingAs(User::factory()->create());
+
+    $this->get(route($route))->assertForbidden();
+})->with(['dashboard', 'admin.photos', 'admin.business']);
