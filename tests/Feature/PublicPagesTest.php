@@ -4,6 +4,7 @@ use App\Models\Currency;
 use App\Models\Photo;
 use App\Models\Setting;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 test('every public page opens', function (string $route) {
     $this->get(route($route))->assertOk();
@@ -107,6 +108,16 @@ test('visitors and other users do not see the owner links', function (bool $logg
 
     $this->get(route('home'))->assertDontSee('class="owner-bar"', false);
 })->with(['visitor' => false, 'user who is not the owner' => true]);
+
+test('the home page loads business details once, not for every use', function () {
+    Currency::factory()->count(3)->create();
+    Setting::put(['phone' => '0803 123 4567']);
+
+    DB::enableQueryLog();
+    $this->get(route('home'))->assertOk()->assertSee('0803 123 4567');
+
+    expect(count(DB::getQueryLog()))->toBeLessThanOrEqual(15);
+});
 
 test('unknown pages show the branded not found page', function () {
     $this->get('/no-such-page')

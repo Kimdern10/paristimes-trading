@@ -28,6 +28,11 @@ class PageController extends Controller
     public function home(): View
     {
         $currencies = Currency::query()->shown()->get();
+        $totals = Transaction::query()
+            ->where('is_public', true)
+            ->toBase()
+            ->selectRaw('count(*) as deals, coalesce(sum(naira_total), 0) as volume')
+            ->first();
 
         return view('site.home', [
             'currencies' => $currencies,
@@ -37,8 +42,8 @@ class PageController extends Controller
             'photos' => Photo::query()->orderBy('sort_order')->orderByDesc('id')->limit(3)->get(),
             'recentDeals' => Transaction::query()->shownOnWebsite()->limit(6)->get(),
             'dealStats' => [
-                'count' => Transaction::query()->where('is_public', true)->count(),
-                'volume' => (float) Transaction::query()->where('is_public', true)->sum('naira_total'),
+                'count' => (int) $totals->deals,
+                'volume' => (float) $totals->volume,
             ],
         ]);
     }

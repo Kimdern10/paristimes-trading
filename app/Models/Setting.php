@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Once;
 
 /**
  * Key/value store for the business details the owner edits in the admin.
@@ -60,14 +61,17 @@ class Setting extends Model
     /**
      * Get every stored value, falling back to the defaults.
      *
+     * The result is kept in memory for the rest of the request, because a
+     * page asks for dozens of values and the cache itself is a database table.
+     *
      * @return array<string, string>
      */
     public static function values(): array
     {
-        return Cache::rememberForever(self::CACHE_KEY, fn (): array => array_merge(
+        return once(fn (): array => Cache::rememberForever(self::CACHE_KEY, fn (): array => array_merge(
             self::DEFAULTS,
             static::query()->pluck('value', 'key')->map(fn (?string $value): string => (string) $value)->all(),
-        ));
+        )));
     }
 
     /**
@@ -90,6 +94,7 @@ class Setting extends Model
         }
 
         Cache::forget(self::CACHE_KEY);
+        Once::flush();
     }
 
     /**
