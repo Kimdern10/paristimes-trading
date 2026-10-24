@@ -226,6 +226,207 @@ function setUpTilt() {
 }
 
 /**
+ * Airport-style flip tiles for rates. Each character gets its own tile;
+ * digits shuffle through random numbers before landing on the real one.
+ */
+const DIGITS = '0123456789';
+
+/** The value each flip element currently shows (kept in memory, not in the DOM, so Livewire leaves it alone). */
+const shownValues = new WeakMap();
+
+function makeTile(char) {
+    const tile = document.createElement('span');
+    const face = document.createElement('span');
+
+    tile.className = DIGITS.includes(char) ? 'flip-char' : 'flip-char is-sep';
+    face.className = 'flip-face';
+    face.textContent = char;
+    tile.append(face);
+
+    return tile;
+}
+
+function setTile(tile, char) {
+    const face = tile.firstElementChild;
+
+    face.textContent = char;
+    face.classList.remove('is-flipping');
+    void face.offsetWidth;
+    face.classList.add('is-flipping');
+}
+
+/**
+ * Show a value on a flip element, flipping only the characters that changed
+ * (or every digit when shuffle is true, for the first load).
+ */
+function flipTo(element, value, shuffle = false) {
+    const cells = element.querySelector('.flip-cells');
+
+    if (!cells) {
+        return;
+    }
+
+    shownValues.set(element, value);
+
+    if (reduceMotion) {
+        cells.textContent = value;
+
+        return;
+    }
+
+    let tiles = [...cells.querySelectorAll('.flip-char')];
+
+    if (tiles.length !== value.length) {
+        cells.replaceChildren(...[...value].map((char) => makeTile(DIGITS.includes(char) ? '0' : char)));
+        tiles = [...cells.querySelectorAll('.flip-char')];
+        shuffle = true;
+    }
+
+    [...value].forEach((char, index) => {
+        const tile = tiles[index];
+        const current = tile.firstElementChild.textContent;
+
+        tile.className = DIGITS.includes(char) ? 'flip-char' : 'flip-char is-sep';
+
+        if (!DIGITS.includes(char)) {
+            if (current !== char) {
+                setTile(tile, char);
+            }
+
+            return;
+        }
+
+        if (!shuffle && current === char) {
+            return;
+        }
+
+        const spins = (shuffle ? 4 : 2) + index;
+        let count = 0;
+
+        clearInterval(tile.flipTimer);
+        tile.flipTimer = setInterval(() => {
+            count++;
+
+            if (count >= spins) {
+                clearInterval(tile.flipTimer);
+                setTile(tile, char);
+
+                return;
+            }
+
+            setTile(tile, DIGITS[Math.floor(Math.random() * 10)]);
+        }, 70);
+    });
+}
+
+/**
+ * Turn every flip element on the page into tiles, and flip any whose value
+ * Livewire has changed since it was last shown.
+ */
+function syncFlips() {
+    document.querySelectorAll('.flip').forEach((element) => {
+        const value = element.dataset.flip || '';
+
+        if (!shownValues.has(element)) {
+            flipTo(element, value, true);
+        } else if (shownValues.get(element) !== value) {
+            flipTo(element, value);
+        }
+    });
+}
+
+/**
+ * Read the latest rates that the live rates component prints on the page.
+ */
+function liveRates() {
+    try {
+        return JSON.parse(document.getElementById('live-rates-data')?.textContent || '[]');
+    } catch {
+        return [];
+    }
+}
+
+let heroTimer = null;
+let heroPausedUntil = 0;
+
+/**
+ * The big rate in the hero: shows one currency at a time, moves to the next
+ * every few seconds, and lets visitors pick one with the tabs.
+ */
+function showHeroRate(code) {
+    const hero = document.querySelector('[data-hero-rate]');
+    const rate = liveRates().find((item) => item.code === code && item.sell !== null);
+
+    if (!hero || !rate) {
+        return;
+    }
+
+    hero.dataset.current = code;
+    hero.querySelector('[data-hero-symbol]').textContent = rate.symbol;
+    hero.querySelector('[data-hero-code]').textContent = rate.code;
+    hero.querySelector('[data-hero-buy]').textContent = rate.buyText;
+    hero.querySelectorAll('[role="tab"]').forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.code === code)));
+
+    const flip = hero.querySelector('[data-hero-flip]');
+    flip.dataset.flip = rate.sellText;
+    flipTo(flip, rate.sellText);
+}
+
+function setUpHeroRate() {
+    const hero = document.querySelector('[data-hero-rate]');
+
+    clearInterval(heroTimer);
+
+    if (!hero) {
+        return;
+    }
+
+    const tabs = [...hero.querySelectorAll('[role="tab"]')];
+    hero.dataset.current = tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')?.dataset.code || '';
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            heroPausedUntil = Date.now() + 20000;
+            showHeroRate(tab.dataset.code);
+        });
+    });
+
+    if (reduceMotion || tabs.length < 2) {
+        return;
+    }
+
+    heroTimer = setInterval(() => {
+        if (Date.now() < heroPausedUntil || document.hidden) {
+            return;
+        }
+
+        const codes = tabs.map((tab) => tab.dataset.code);
+        const next = codes[(codes.indexOf(hero.dataset.current) + 1) % codes.length];
+        showHeroRate(next);
+    }, 5000);
+}
+
+let updateCalculator = null;
+
+/**
+ * After Livewire brings new rates: flip the changed numbers, refresh the big
+ * hero rate and recalculate the calculator.
+ */
+document.addEventListener('livewire:init', () => {
+    window.Livewire.hook('morphed', () => {
+        syncFlips();
+
+        const hero = document.querySelector('[data-hero-rate]');
+
+        if (hero?.dataset.current) {
+            showHeroRate(hero.dataset.current);
+        }
+
+        updateCalculator?.();
+    });
+});
+
+/**
  * Format a number of naira, e.g. 790000 -> "₦790,000".
  */
 function naira(amount) {
@@ -241,11 +442,12 @@ function naira(amount) {
 function setUpCalculator() {
     const form = document.querySelector('[data-calc]');
 
+    updateCalculator = null;
+
     if (!form) {
         return;
     }
 
-    const rates = JSON.parse(form.dataset.rates || '[]');
     const business = form.dataset.business || '';
     const whatsappUrl = form.dataset.whatsapp || '';
 
@@ -258,7 +460,7 @@ function setUpCalculator() {
 
     const update = () => {
         const mode = form.querySelector('[name="mode"]:checked')?.value || 'sell';
-        const currency = rates.find((rate) => rate.code === currencySelect.value);
+        const currency = liveRates().find((rate) => rate.code === currencySelect.value);
         const amount = parseFloat(String(amountInput.value).replace(/,/g, ''));
         const rate = currency ? parseFloat(mode === 'sell' ? currency.buy : currency.sell) : NaN;
         const verb = mode === 'sell' ? 'sell' : 'buy';
@@ -295,6 +497,7 @@ function setUpCalculator() {
     form.addEventListener('change', update);
     form.addEventListener('submit', (event) => event.preventDefault());
 
+    updateCalculator = update;
     update();
 }
 
@@ -379,6 +582,8 @@ function initPage() {
     setUpReveal();
     setUpCountUp();
     setUpTilt();
+    syncFlips();
+    setUpHeroRate();
     setUpCalculator();
     setUpTrendTabs();
     setUpMap();

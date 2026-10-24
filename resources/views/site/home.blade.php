@@ -1,50 +1,13 @@
 @php
+    use App\Enums\TransactionType;
+    use App\Models\Currency;
     use App\Models\Setting;
 
     $business = Setting::get('business_name');
-    $highlight = 'Foreign Currency Exchange';
-    $heroTitle = str_replace(e($highlight), '<span class="gold">'.e($highlight).'</span>', e(Setting::get('hero_title')));
-
-    $calculatorRates = $currencies->map(fn ($currency) => [
-        'code' => $currency->code,
-        'symbol' => $currency->symbol,
-        'buy' => $currency->buy_rate,
-        'sell' => $currency->sell_rate,
-    ])->values();
 @endphp
 
 <x-layouts::site>
-    <section class="hero">
-        <x-currency-fx />
-        <div class="container hero-grid">
-            <div>
-                <span class="eyebrow"><x-site-icon name="map-pin" /> {{ Setting::get('address_area') }}</span>
-                <h1>{!! $heroTitle !!}</h1>
-                <p class="hero-text">{{ Setting::get('hero_text') }}</p>
-
-                <div class="hero-actions">
-                    <a class="btn btn-whatsapp" href="{{ Setting::whatsappUrl('Hello '.$business.', I would like to exchange currency. What are your rates today?') }}" target="_blank" rel="noopener">
-                        <x-site-icon name="whatsapp" />
-                        Chat with us now on WhatsApp
-                    </a>
-                    <a class="btn btn-outline" href="{{ Setting::phoneUrl() }}">
-                        <x-site-icon name="phone" />
-                        {{ Setting::get('phone') }}
-                    </a>
-                </div>
-
-                <ul class="hero-points">
-                    <li><x-site-icon name="check" /> Fast transactions</li>
-                    <li><x-site-icon name="check" /> Competitive rates</li>
-                    <li><x-site-icon name="check" /> Secure deals</li>
-                </ul>
-            </div>
-
-            @if ($currencies->isNotEmpty())
-                <x-rates-board :currencies="$currencies" :updated-at="$ratesUpdatedAt" />
-            @endif
-        </div>
-    </section>
+    <livewire:live-rates />
 
     <div class="trust-strip">
         <div class="container">
@@ -75,10 +38,10 @@
                 <div class="section-head reveal">
                     <span class="kicker">Rate calculator</span>
                     <h2>See how much you will get</h2>
-                    <p>Pick a currency and type an amount. Then send the details to us on WhatsApp to lock in the rate.</p>
+                    <p>Pick a currency and type an amount. It always uses our latest rate. Then send the details to us on WhatsApp to lock it in.</p>
                 </div>
 
-                <form class="calc reveal" data-calc data-rates='@json($calculatorRates)' data-business="{{ $business }}" data-whatsapp="{{ Setting::whatsappUrl() }}">
+                <form class="calc reveal" data-calc data-business="{{ $business }}" data-whatsapp="{{ Setting::whatsappUrl() }}">
                     <div class="calc-fields">
                         <div class="field">
                             <fieldset>
@@ -122,54 +85,6 @@
         </section>
     @endif
 
-    @if ($trends !== [])
-        <x-rate-trend :trends="$trends" />
-    @endif
-
-    @if ($currencies->isNotEmpty())
-        <section class="hscroll" aria-labelledby="hscroll-title">
-            <div class="container">
-                <div class="hscroll-head reveal">
-                    <span class="kicker">Currencies we trade</span>
-                    <h2 id="hscroll-title">Buy or sell at today's rate</h2>
-                </div>
-                <div class="hscroll-track">
-                    @foreach ($currencies as $currency)
-                        <article class="h-card">
-                            <span class="h-card-symbol" aria-hidden="true">{{ $currency->symbol ?: $currency->code }}</span>
-                            <span class="h-card-code">{{ $currency->code }}</span>
-                            <h3>{{ $currency->name }}</h3>
-                            <dl class="h-card-rates">
-                                <div><dt>We buy</dt><dd>{{ App\Models\Currency::naira($currency->buy_rate) }}</dd></div>
-                                <div><dt>We sell</dt><dd>{{ App\Models\Currency::naira($currency->sell_rate) }}</dd></div>
-                            </dl>
-                            <a class="btn btn-gold btn-sm" href="{{ Setting::whatsappUrl('Hello '.$business.', I want to exchange '.$currency->code.'. What is your rate today?') }}" target="_blank" rel="noopener">
-                                <x-site-icon name="whatsapp" />
-                                Exchange {{ $currency->code }}
-                            </a>
-                        </article>
-                    @endforeach
-                    <article class="h-card h-card-light">
-                        <span class="h-card-symbol" aria-hidden="true">₦</span>
-                        <span class="h-card-code">Pay online</span>
-                        <h3>Paystack or Flutterwave</h3>
-                        <p>Agree the rate on WhatsApp, then pay securely online or at our shop.</p>
-                    </article>
-                    <article class="h-card h-card-light">
-                        <span class="h-card-symbol" aria-hidden="true">?</span>
-                        <span class="h-card-code">Something else?</span>
-                        <h3>Need another currency?</h3>
-                        <p>Ask us on WhatsApp. We will tell you if we can help today.</p>
-                        <a class="btn btn-whatsapp btn-sm" href="{{ Setting::whatsappUrl('Hello '.$business.', do you exchange another currency?') }}" target="_blank" rel="noopener">
-                            <x-site-icon name="whatsapp" />
-                            Ask us
-                        </a>
-                    </article>
-                </div>
-            </div>
-        </section>
-    @endif
-
     <div class="marquee-band" aria-hidden="true">
         <div class="marquee-track">
             @foreach ([1, 2] as $copy)
@@ -205,9 +120,9 @@
                 <ul class="deals reveal-stagger">
                     @foreach ($recentDeals as $deal)
                         <li class="deal reveal">
-                            <span @class(['deal-type', 'is-buy' => $deal->type === App\Enums\TransactionType::Buy])>{{ $deal->type->shortLabel() }}</span>
+                            <span @class(['deal-type', 'is-buy' => $deal->type === TransactionType::Buy])>{{ $deal->type->shortLabel() }}</span>
                             <span class="deal-amount">{{ $deal->formattedAmount() }} <small>{{ $deal->currency_code }}</small></span>
-                            <span class="deal-rate">at {{ App\Models\Currency::naira($deal->rate) }}</span>
+                            <span class="deal-rate">at {{ Currency::naira($deal->rate) }}</span>
                             <time class="deal-date" datetime="{{ $deal->traded_on->toDateString() }}">{{ $deal->traded_on->isToday() ? 'Today' : $deal->traded_on->format('j M Y') }}</time>
                             @if ($deal->hasPublicReceipt())
                                 <a class="deal-receipt" href="{{ route('deals.receipt', $deal) }}" @if ($deal->receiptIsPdf()) target="_blank" rel="noopener" @else data-lightbox data-lightbox-caption="Receipt: {{ $deal->type->shortLabel() }} {{ $deal->formattedAmount() }} {{ $deal->currency_code }}, {{ $deal->traded_on->format('j M Y') }}" @endif>
@@ -222,78 +137,40 @@
         </section>
     @endif
 
-    <section class="section section-alt">
-        <div class="container split">
-            <div class="reveal">
-                <span class="kicker">What we do</span>
-                <h2>Professional foreign currency exchange</h2>
-                <p class="prose-lead">At {{ $business }}, we provide professional foreign currency exchange services with competitive rates and fast transactions.</p>
-                <p class="prose-lead">We help individuals and businesses exchange currencies safely and efficiently.</p>
-                <div class="hero-actions">
-                    <a class="btn btn-ghost" href="{{ route('services') }}" wire:navigate.hover>
-                        Our services
-                        <x-site-icon name="arrow-right" />
-                    </a>
-                </div>
-            </div>
-
-            <div class="cards reveal">
-                <div class="card">
-                    <span class="card-icon"><x-site-icon name="exchange" /></span>
-                    <h3>Buy and sell</h3>
-                    <p>US Dollars, British Pounds and Euros.</p>
-                </div>
-                <div class="card">
-                    <span class="card-icon"><x-site-icon name="bolt" /></span>
-                    <h3>Fast service</h3>
-                    <p>Instant processing with no unnecessary delays.</p>
-                </div>
-                <div class="card">
-                    <span class="card-icon"><x-site-icon name="shield" /></span>
-                    <h3>Secure deals</h3>
-                    <p>Safe and verified transactions in a trusted place.</p>
-                </div>
-                <div class="card">
-                    <span class="card-icon"><x-site-icon name="card" /></span>
-                    <h3>Online payment</h3>
-                    <p>Pay securely with Paystack or Flutterwave.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    @if ($trends !== [])
+        <x-rate-trend :trends="$trends" />
+    @endif
 
     <section class="section">
-        <div class="container split">
-            <div class="reveal">
-                @if ($photos->isNotEmpty())
-                    <div class="photo-panel">
-                        <img src="{{ $photos->first()->url() }}" srcset="{{ $photos->first()->smallUrl() }} 800w, {{ $photos->first()->url() }} 1600w" sizes="(min-width: 960px) 560px, 100vw" alt="{{ $photos->first()->caption ?: 'Our shop in Idumota' }}" loading="lazy">
-                    </div>
-                @else
-                    <div class="brand-panel">
-                        <x-logo-mark />
-                        <div class="brand-values"><span>Trust</span><span>Speed</span><span>Transparency</span></div>
-                    </div>
-                @endif
-            </div>
-
-            <div class="reveal">
-                <span class="kicker">Why choose us</span>
-                <h2>Exchange with people you can trust</h2>
-                <ul class="check-list">
-                    <li><x-site-icon name="check" /> Trusted local business in Lagos</li>
-                    <li><x-site-icon name="check" /> Fast transactions</li>
-                    <li><x-site-icon name="check" /> Competitive exchange rates</li>
-                    <li><x-site-icon name="check" /> Secure and reliable service</li>
-                    <li><x-site-icon name="check" /> Easy WhatsApp communication</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <section class="section section-alt">
         <div class="container">
-            <div class="section-head center reveal">
+            <div class="split">
+                <div class="reveal">
+                    @if ($photos->isNotEmpty())
+                        <div class="photo-panel">
+                            <img src="{{ $photos->first()->url() }}" srcset="{{ $photos->first()->smallUrl() }} 800w, {{ $photos->first()->url() }} 1600w" sizes="(min-width: 960px) 560px, 100vw" alt="{{ $photos->first()->caption ?: 'Our shop in Idumota' }}" loading="lazy">
+                        </div>
+                    @else
+                        <div class="brand-panel">
+                            <x-logo-mark />
+                            <div class="brand-values"><span>Trust</span><span>Speed</span><span>Transparency</span></div>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="reveal">
+                    <span class="kicker">Why choose us</span>
+                    <h2>Exchange with people you can trust</h2>
+                    <p class="prose-lead">We buy and sell US Dollars, British Pounds and Euros for individuals, traders and businesses, with competitive rates and fast, secure transactions.</p>
+                    <ul class="check-list">
+                        <li><x-site-icon name="check" /> Trusted local business in Lagos</li>
+                        <li><x-site-icon name="check" /> Competitive exchange rates</li>
+                        <li><x-site-icon name="check" /> Secure deals, paid at our shop or online with Paystack or Flutterwave</li>
+                        <li><x-site-icon name="check" /> Easy WhatsApp communication</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section-head how-head reveal">
                 <span class="kicker">How it works</span>
                 <h2>Exchange in three simple steps</h2>
             </div>
@@ -333,18 +210,20 @@
                     </ul>
                 </div>
                 <div class="visit-actions">
+                    <a class="btn btn-whatsapp" href="{{ Setting::whatsappUrl('Hello '.$business.', I would like to exchange currency. What are your rates today?') }}" target="_blank" rel="noopener">
+                        <x-site-icon name="whatsapp" />
+                        Chat with us on WhatsApp
+                    </a>
                     <a class="btn btn-gold" href="{{ Setting::mapsUrl() }}" target="_blank" rel="noopener">
                         <x-site-icon name="map-pin" />
                         Get directions
                     </a>
                     <a class="btn btn-outline" href="{{ Setting::phoneUrl() }}">
                         <x-site-icon name="phone" />
-                        Call us
+                        Call {{ Setting::get('phone') }}
                     </a>
                 </div>
             </div>
         </div>
     </section>
-
-    <x-cta-band />
 </x-layouts::site>

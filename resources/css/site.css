@@ -2105,135 +2105,190 @@ h2 + .prose-lead,
     }
 }
 
-/* Currency cards */
+/* Text only screen readers hear */
 
-.hscroll {
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Airport-style flip tiles (site.js builds one tile per character) */
+
+.flip {
+    display: inline-flex;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.flip-cells {
+    display: inline-flex;
+    align-items: center;
+}
+
+.flip-char {
     position: relative;
-    padding: 4rem 0;
-    background:
-        radial-gradient(40rem 20rem at 0% 0%, rgb(221 178 71 / 10%), transparent 60%),
-        var(--bg);
+    display: inline-grid;
+    place-items: center;
+    min-width: 0.72em;
+    height: 1.28em;
+    margin: 0 0.035em;
+    border-radius: 0.14em;
+    background: linear-gradient(180deg, #13295a 0%, #102352 49.5%, #0b1b42 50.5%, #0a1838 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 0.06em 0.12em rgb(0 0 0 / 35%);
+    color: var(--gold-300);
+    perspective: 300px;
 }
 
-.hscroll-head {
-    margin-bottom: 2rem;
+.flip-char::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 1px;
+    background: rgb(0 0 0 / 45%);
 }
 
-.hscroll-head h2 {
-    font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+.flip-char.is-sep {
+    min-width: 0.34em;
+    margin: 0;
+    background: none;
+    box-shadow: none;
+    color: rgb(236 208 138 / 75%);
 }
 
-.hscroll-track {
-    display: grid;
-    gap: 1rem;
+.flip-char.is-sep::after {
+    display: none;
+}
+
+.flip-face {
+    display: block;
+    backface-visibility: hidden;
+}
+
+.flip-face.is-flipping {
+    animation: flap 0.16s ease-out;
+}
+
+@keyframes flap {
+    from {
+        transform: rotateX(-88deg);
+        opacity: 0.35;
+    }
+
+    to {
+        transform: rotateX(0deg);
+        opacity: 1;
+    }
+}
+
+.flip-sm {
+    font-size: 1.02rem;
+}
+
+.flip-xl {
+    font-size: clamp(2.6rem, 9.5vw, 4.6rem);
+}
+
+/* The big live rate in the hero */
+
+.hero-rate {
+    margin-top: 1.5rem;
+    padding: 1.1rem 1.1rem 1.25rem;
+    border: 1px solid rgb(236 208 138 / 22%);
+    border-radius: var(--radius-lg);
+    background: rgb(255 255 255 / 4%);
 }
 
 @media (min-width: 640px) {
-    .hscroll-track {
-        grid-template-columns: repeat(2, 1fr);
+    .hero-rate {
+        display: inline-block;
+        min-width: 31rem;
+        padding: 1.25rem 1.5rem 1.4rem;
     }
 }
 
-@media (min-width: 1000px) {
-    .hscroll-track {
-        grid-template-columns: repeat(3, 1fr);
-    }
+.hero-rate-tabs {
+    display: inline-flex;
+    gap: 4px;
+    margin-bottom: 0.9rem;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 25%);
 }
 
-.h-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    min-height: 300px;
-    padding: 1.75rem;
-    overflow: hidden;
-    border-radius: 26px;
-    background:
-        radial-gradient(18rem 12rem at 100% 0%, rgb(221 178 71 / 25%), transparent 60%),
-        linear-gradient(160deg, var(--navy-800), var(--navy-950));
-    color: #fff;
-    box-shadow: var(--shadow);
-}
-
-.h-card-symbol {
-    position: absolute;
-    right: -0.5rem;
-    bottom: -2.5rem;
-    color: transparent;
-    font-family: var(--font-display);
-    font-size: 13rem;
-    font-weight: 800;
-    line-height: 1;
-    -webkit-text-stroke: 2px rgb(236 208 138 / 30%);
-    transition: transform 0.5s ease;
-}
-
-.h-card:hover .h-card-symbol {
-    transform: rotate(-8deg) scale(1.06);
-}
-
-.h-card-code {
-    color: var(--gold-300);
+.hero-rate-tabs button {
+    min-width: 56px;
+    min-height: 34px;
+    padding: 0.25rem 0.8rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: rgb(255 255 255 / 65%);
+    font: inherit;
     font-size: 0.85rem;
     font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    cursor: pointer;
 }
 
-.h-card h3 {
-    font-size: 1.6rem;
+.hero-rate-tabs button[aria-selected='true'] {
+    background: var(--gold-400);
+    color: var(--navy-950);
 }
 
-.h-card p {
-    max-width: 16rem;
-    color: rgb(255 255 255 / 75%);
+.hero-rate-label {
+    margin-bottom: 0.6rem;
+    color: rgb(255 255 255 / 78%);
+    font-size: 1.05rem;
 }
 
-.h-card-rates {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    margin: 1rem 0 0;
-}
-
-.h-card-rates dt {
-    color: rgb(255 255 255 / 60%);
-    font-size: 0.8rem;
-}
-
-.h-card-rates dd {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 1.45rem;
+.hero-rate-label span {
+    color: #fff;
     font-weight: 700;
-    font-variant-numeric: tabular-nums;
 }
 
-.h-card .btn {
-    position: relative;
-    align-self: flex-start;
-    margin-top: auto;
+.hero-rate-sub {
+    margin-top: 0.7rem;
+    color: rgb(255 255 255 / 70%);
 }
 
-.h-card-light {
-    background:
-        radial-gradient(18rem 12rem at 100% 0%, rgb(221 178 71 / 18%), transparent 60%),
-        var(--bg);
-    color: var(--text);
-    border: 1px solid var(--line);
+.hero-rate-sub strong {
+    color: #fff;
 }
 
-.h-card-light p {
-    color: var(--muted);
+.hero h1 {
+    font-size: clamp(1.9rem, 5.6vw, 3.1rem);
 }
 
-.h-card-light .h-card-code {
-    color: var(--accent);
+.how-head {
+    margin-top: 4rem;
 }
 
-.h-card-light .h-card-symbol {
-    -webkit-text-stroke-color: rgb(201 154 46 / 30%);
+/* Soft fade between pages (Livewire swaps the page body) */
+
+main {
+    animation: page-in 0.45s ease both;
+}
+
+@keyframes page-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    main,
+    .flip-face.is-flipping {
+        animation: none;
+    }
 }
 
 /* Big outlined words moving sideways */

@@ -34,7 +34,6 @@ class PageController extends Controller
             'trends' => RateChart::forCurrencies($currencies),
             'reviews' => Review::query()->published()->get(),
             'faqs' => Faq::query()->published()->get(),
-            'ratesUpdatedAt' => Setting::ratesUpdatedAt(),
             'photos' => Photo::query()->orderBy('sort_order')->orderByDesc('id')->limit(3)->get(),
             'recentDeals' => Transaction::query()->shownOnWebsite()->limit(6)->get(),
             'dealStats' => [
