@@ -336,6 +336,32 @@ function setUpMap() {
 }
 
 /**
+ * Open receipt pictures in a popup instead of leaving the page. One listener
+ * on the document works for every page.
+ */
+document.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-lightbox]');
+    const dialog = document.querySelector('[data-lightbox-dialog]');
+
+    if (link && dialog?.showModal) {
+        event.preventDefault();
+        const caption = link.dataset.lightboxCaption || '';
+        const image = dialog.querySelector('[data-lightbox-image]');
+
+        image.src = link.href;
+        image.alt = caption;
+        dialog.querySelector('[data-lightbox-text]').textContent = caption;
+        dialog.showModal();
+
+        return;
+    }
+
+    if (dialog?.open && (event.target === dialog || event.target.closest('[data-lightbox-close]'))) {
+        dialog.close();
+    }
+});
+
+/**
  * Set up everything on the current page. Runs on the first load and after
  * every wire:navigate page change; the marker on <body> stops it running
  * twice for the same page.

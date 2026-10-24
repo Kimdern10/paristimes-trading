@@ -103,6 +103,7 @@ class PageController extends Controller
             'User-agent: *',
             'Disallow: /admin',
             'Disallow: /settings',
+            'Disallow: /deals',
             '',
             'Sitemap: '.route('sitemap'),
         ];

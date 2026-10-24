@@ -209,6 +209,12 @@
                             <span class="deal-amount">{{ $deal->formattedAmount() }} <small>{{ $deal->currency_code }}</small></span>
                             <span class="deal-rate">at {{ App\Models\Currency::naira($deal->rate) }}</span>
                             <time class="deal-date" datetime="{{ $deal->traded_on->toDateString() }}">{{ $deal->traded_on->isToday() ? 'Today' : $deal->traded_on->format('j M Y') }}</time>
+                            @if ($deal->hasPublicReceipt())
+                                <a class="deal-receipt" href="{{ route('deals.receipt', $deal) }}" @if ($deal->receiptIsPdf()) target="_blank" rel="noopener" @else data-lightbox data-lightbox-caption="Receipt: {{ $deal->type->shortLabel() }} {{ $deal->formattedAmount() }} {{ $deal->currency_code }}, {{ $deal->traded_on->format('j M Y') }}" @endif>
+                                    <x-site-icon name="card" />
+                                    View receipt
+                                </a>
+                            @endif
                         </li>
                     @endforeach
                 </ul>

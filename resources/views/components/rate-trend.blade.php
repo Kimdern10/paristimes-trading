@@ -52,7 +52,7 @@
 
                     <div class="trend-axis">
                         <span>{{ $chart['from'] }}</span>
-                        <span class="trend-legend"><i class="dot-sell"></i> Sell <i class="dot-buy"></i> Buy</span>
+                        <span class="trend-legend"><i class="dot-sell"></i> Sell <i class="dot-buy"></i> Buy <span class="trend-range">· Low {{ $chart['min'] }} · High {{ $chart['max'] }}</span></span>
                         <span>{{ $chart['to'] }}</span>
                     </div>
                 </div>

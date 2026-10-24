@@ -13,9 +13,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * A past exchange deal the owner recorded. Customer names, notes and
- * receipts stay in the admin; the website only shows public deals'
- * currency, amount, rate and date.
+ * A past exchange deal the owner recorded. Customer names and notes stay
+ * in the admin; the website shows public deals' currency, amount, rate and
+ * date, plus the receipt when the owner switches that on for the deal.
  *
  * @property int $id
  * @property Carbon $traded_on
@@ -27,11 +27,12 @@ use Illuminate\Support\Facades\Storage;
  * @property string $customer_name
  * @property string $note
  * @property string|null $receipt_path
+ * @property bool $receipt_is_public
  * @property bool $is_public
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['traded_on', 'type', 'currency_code', 'amount', 'rate', 'naira_total', 'customer_name', 'note', 'receipt_path', 'is_public'])]
+#[Fillable(['traded_on', 'type', 'currency_code', 'amount', 'rate', 'naira_total', 'customer_name', 'note', 'receipt_path', 'receipt_is_public', 'is_public'])]
 class Transaction extends Model
 {
     /** @use HasFactory<TransactionFactory> */
@@ -55,8 +56,26 @@ class Transaction extends Model
             'amount' => 'decimal:2',
             'rate' => 'decimal:2',
             'naira_total' => 'decimal:2',
+            'receipt_is_public' => 'boolean',
             'is_public' => 'boolean',
         ];
+    }
+
+    /**
+     * Whether visitors may see this deal's receipt: the deal is on the
+     * website and the owner chose to show its receipt too.
+     */
+    public function hasPublicReceipt(): bool
+    {
+        return $this->is_public && $this->receipt_is_public && $this->receipt_path !== null;
+    }
+
+    /**
+     * Whether the receipt is a PDF rather than a picture.
+     */
+    public function receiptIsPdf(): bool
+    {
+        return str_ends_with((string) $this->receipt_path, '.pdf');
     }
 
     /**

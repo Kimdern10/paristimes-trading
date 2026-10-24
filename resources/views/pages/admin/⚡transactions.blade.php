@@ -45,6 +45,8 @@ new #[Title('Transactions')] class extends Component {
 
     public bool $is_public = true;
 
+    public bool $receipt_is_public = false;
+
     public ?TemporaryUploadedFile $receipt = null;
 
     public ?TemporaryUploadedFile $csv = null;
@@ -193,6 +195,7 @@ new #[Title('Transactions')] class extends Component {
         $this->customer_name = $transaction->customer_name;
         $this->note = $transaction->note;
         $this->is_public = $transaction->is_public;
+        $this->receipt_is_public = $transaction->receipt_is_public;
         $this->receipt = null;
 
         Flux::modal('transaction-form')->show();
@@ -214,6 +217,7 @@ new #[Title('Transactions')] class extends Component {
             'customer_name' => ['nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:255'],
             'is_public' => ['boolean'],
+            'receipt_is_public' => ['boolean'],
             'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:8192'],
         ], attributes: [
             'traded_on' => 'date',
@@ -234,6 +238,7 @@ new #[Title('Transactions')] class extends Component {
             'customer_name' => trim((string) $validated['customer_name']),
             'note' => trim((string) $validated['note']),
             'is_public' => $validated['is_public'],
+            'receipt_is_public' => $validated['receipt_is_public'],
         ]);
 
         if ($this->receipt !== null) {
@@ -332,7 +337,7 @@ new #[Title('Transactions')] class extends Component {
     private function resetForm(): void
     {
         $this->resetValidation();
-        $this->reset('editingId', 'amount', 'customer_name', 'note', 'receipt', 'is_public', 'type');
+        $this->reset('editingId', 'amount', 'customer_name', 'note', 'receipt', 'is_public', 'receipt_is_public', 'type');
         $this->traded_on = now()->toDateString();
         $this->currency_code = (string) $this->currencies->first()?->code;
         $this->useSavedRate();
@@ -443,7 +448,14 @@ new #[Title('Transactions')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>
                         @if ($transaction->receipt_path)
-                            <x-receipt-thumb :transaction="$transaction" />
+                            <div class="flex items-center gap-2">
+                                <x-receipt-thumb :transaction="$transaction" />
+                                @if ($transaction->hasPublicReceipt())
+                                    <flux:badge size="sm" color="green" icon="eye">{{ __('Public') }}</flux:badge>
+                                @else
+                                    <flux:badge size="sm" icon="lock-closed">{{ __('Private') }}</flux:badge>
+                                @endif
+                            </div>
                         @else
                             <flux:text size="sm">—</flux:text>
                         @endif
@@ -461,14 +473,19 @@ new #[Title('Transactions')] class extends Component {
             @empty
                 <flux:table.row>
                     <flux:table.cell colspan="8">
-                        @if ($search !== '' || $typeFilter !== '')
-                            <div class="flex flex-wrap items-center gap-3">
-                                <flux:text>{{ __('No transactions match your search.') }}</flux:text>
-                                <flux:button size="sm" icon="x-mark" wire:click="clearFilters">{{ __('Clear search') }}</flux:button>
-                            </div>
-                        @else
-                            <flux:text>{{ __('No transactions yet. Add one, or upload your previous deals from a spreadsheet.') }}</flux:text>
-                        @endif
+                        <div class="flex flex-col items-center gap-2 py-10 text-center">
+                            @if ($search !== '' || $typeFilter !== '')
+                                <flux:icon.magnifying-glass class="size-9 text-zinc-400" />
+                                <flux:heading>{{ __('No transactions match your search') }}</flux:heading>
+                                <flux:text>{{ __('Try another word, or clear the search to see every deal.') }}</flux:text>
+                                <flux:button size="sm" icon="x-mark" class="mt-2" wire:click="clearFilters">{{ __('Clear search') }}</flux:button>
+                            @else
+                                <flux:icon.clipboard-document-list class="size-9 text-zinc-400" />
+                                <flux:heading>{{ __('No transactions yet') }}</flux:heading>
+                                <flux:text>{{ __('Add your first deal, or upload your previous deals from a spreadsheet above.') }}</flux:text>
+                                <flux:button size="sm" variant="primary" icon="plus" class="mt-2" wire:click="create">{{ __('Add transaction') }}</flux:button>
+                            @endif
+                        </div>
                     </flux:table.cell>
                 </flux:table.row>
             @endforelse
@@ -514,7 +531,7 @@ new #[Title('Transactions')] class extends Component {
                 model="receipt"
                 :label="__('Receipt picture (private, optional)')"
                 accept="image/jpeg,image/png,image/webp,application/pdf"
-                :hint="__('A photo or screenshot of the receipt, or a PDF up to 2 MB. Only you can see it.')"
+                :hint="__('A photo or screenshot of the receipt, or a PDF up to 2 MB.')"
             />
 
             @if ($receipt?->isPreviewable() && ! $errors->has('receipt'))
@@ -526,7 +543,12 @@ new #[Title('Transactions')] class extends Component {
                 </div>
             @endif
 
-            <flux:switch wire:model="is_public" :label="__('Show as a recent deal on the website')" />
+            <flux:switch wire:model.live="is_public" :label="__('Show as a recent deal on the website')" />
+
+            <div @class(['space-y-1', 'opacity-50' => ! $is_public])>
+                <flux:switch wire:model="receipt_is_public" :disabled="! $is_public" :label="__('Also let visitors see the receipt')" />
+                <flux:text size="sm">{{ __('Cover customer names, phone and account numbers on the picture before you switch this on.') }}</flux:text>
+            </div>
 
             <div class="flex justify-end gap-2">
                 <flux:modal.close>

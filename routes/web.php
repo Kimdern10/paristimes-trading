@@ -14,6 +14,8 @@ Route::controller(PageController::class)->group(function () {
     Route::get('robots.txt', 'robots')->name('robots');
 });
 
+Route::get('deals/{transaction}/receipt', [TransactionReceiptController::class, 'public'])->name('deals.receipt');
+
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(function () {
     Route::livewire('/', 'pages::admin.rates')->name('dashboard');
     Route::livewire('photos', 'pages::admin.photos')->name('admin.photos');

@@ -168,7 +168,7 @@ test('an empty search result offers to clear the search', function () {
 
     Livewire::test('pages::admin.transactions')
         ->set('search', 'nobody')
-        ->assertSee('No transactions match your search.')
+        ->assertSee('No transactions match your search')
         ->call('clearFilters')
         ->assertSee('Mr Ade');
 });
@@ -183,6 +183,41 @@ test('receipt pictures show as thumbnails in the list', function () {
 
     expect($this->get(route('admin.transactions.receipt', ['transaction' => $transaction, 'size' => 'small']))->streamedContent())->toBe('small')
         ->and($this->get(route('admin.transactions.receipt', $transaction))->streamedContent())->toBe('large');
+});
+
+test('visitors can see a receipt only when the owner shows it', function (bool $dealPublic, bool $receiptPublic, bool $visible) {
+    auth()->logout();
+    $transaction = Transaction::factory()->create([
+        'is_public' => $dealPublic,
+        'receipt_is_public' => $receiptPublic,
+        'receipt_path' => 'receipts/r.webp',
+    ]);
+    Storage::disk(Transaction::RECEIPT_DISK)->put('receipts/r.webp', 'large');
+
+    $response = $this->get(route('deals.receipt', $transaction));
+    $visible ? $response->assertOk() : $response->assertNotFound();
+
+    $home = $this->get(route('home'));
+    $visible
+        ? $home->assertSee(route('deals.receipt', $transaction))->assertSee('View receipt')
+        : $home->assertDontSee(route('deals.receipt', $transaction));
+})->with([
+    'deal and receipt shown' => [true, true, true],
+    'receipt kept private' => [true, false, false],
+    'deal hidden from website' => [false, true, false],
+]);
+
+test('the owner can switch on a receipt for visitors', function () {
+    $transaction = Transaction::factory()->create(['receipt_path' => 'receipts/r.webp']);
+
+    Livewire::test('pages::admin.transactions')
+        ->call('edit', $transaction->id)
+        ->assertSet('receipt_is_public', false)
+        ->set('receipt_is_public', true)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($transaction->fresh()->receipt_is_public)->toBeTrue();
 });
 
 test('a missing receipt file gives not found', function () {

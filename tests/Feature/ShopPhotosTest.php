@@ -11,17 +11,15 @@ beforeEach(function () {
     $this->actingAs(User::factory()->admin()->create());
 });
 
-test('an uploaded photo is saved as large and small WebP copies', function () {
+test('choosing a photo saves it straight away as large and small WebP copies', function () {
     Livewire::test('pages::admin.photos')
         ->set('photo', UploadedFile::fake()->image('shop.jpg', 2400, 1800))
-        ->set('caption', 'Our shop front')
-        ->call('addPhoto')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertSet('photo', null);
 
     $photo = Photo::query()->sole();
 
-    expect($photo->caption)->toBe('Our shop front')
-        ->and($photo->path)->toEndWith('.webp');
+    expect($photo->path)->toEndWith('.webp');
 
     Storage::disk('public')->assertExists([$photo->path, $photo->smallPath()]);
 
@@ -29,16 +27,25 @@ test('an uploaded photo is saved as large and small WebP copies', function () {
         ->and(getimagesizefromstring(Storage::disk('public')->get($photo->smallPath()))[0])->toBe(800);
 });
 
-test('the form saves through addPhoto, not Livewire\'s own upload command', function () {
+test('the page does not use Livewire\'s reserved "upload" name for an action', function () {
     Livewire::test('pages::admin.photos')
-        ->assertSeeHtml('wire:submit="addPhoto"')
-        ->assertDontSeeHtml('wire:submit="upload"');
+        ->assertDontSeeHtml('wire:submit="upload"')
+        ->assertDontSeeHtml('wire:click="upload"');
+});
+
+test('a caption is saved for a photo', function () {
+    $photo = Photo::factory()->create(['caption' => '']);
+
+    Livewire::test('pages::admin.photos')
+        ->set("captions.{$photo->id}", ' Our shop front ')
+        ->assertHasNoErrors();
+
+    expect($photo->fresh()->caption)->toBe('Our shop front');
 });
 
 test('files that are not images are rejected', function () {
     Livewire::test('pages::admin.photos')
         ->set('photo', UploadedFile::fake()->create('rates.pdf', 100, 'application/pdf'))
-        ->call('addPhoto')
         ->assertHasErrors(['photo']);
 
     expect(Photo::query()->count())->toBe(0);
@@ -48,8 +55,7 @@ test('a new photo and a photo moved first are shown first', function () {
     $older = Photo::factory()->create(['sort_order' => 0]);
 
     Livewire::test('pages::admin.photos')
-        ->set('photo', UploadedFile::fake()->image('new.jpg'))
-        ->call('addPhoto');
+        ->set('photo', UploadedFile::fake()->image('new.jpg'));
 
     $newest = Photo::query()->latest('id')->first();
 

@@ -180,6 +180,14 @@
             <span>Chat</span>
         </a>
 
+        <dialog class="lightbox" data-lightbox-dialog aria-label="Receipt">
+            <button type="button" class="lightbox-close" data-lightbox-close aria-label="Close">
+                <x-site-icon name="close" />
+            </button>
+            <img src="" alt="" data-lightbox-image>
+            <p data-lightbox-text></p>
+        </dialog>
+
         @if (auth()->user()?->is_admin)
             <nav class="owner-bar" aria-label="Owner">
                 <span class="owner-bar-label">Owner</span>
