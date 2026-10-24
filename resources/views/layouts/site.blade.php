@@ -180,6 +180,15 @@
             <span>Chat</span>
         </a>
 
+        @if (auth()->user()?->is_admin)
+            <nav class="owner-bar" aria-label="Owner">
+                <span class="owner-bar-label">Owner</span>
+                <a href="{{ route('dashboard') }}">Edit rates</a>
+                <a href="{{ route('admin.transactions') }}">Transactions</a>
+                <a href="{{ route('admin.business') }}">Business details</a>
+            </nav>
+        @endif
+
         @livewireScripts
     </body>
 </html>

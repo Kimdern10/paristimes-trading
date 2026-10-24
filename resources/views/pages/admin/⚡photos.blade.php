@@ -4,6 +4,7 @@ use App\Models\Photo;
 use App\Support\ImageOptimizer;
 use Flux\Flux;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -31,18 +32,23 @@ new #[Title('Shop photos')] class extends Component {
     /**
      * Compress the photo to WebP and add it to the website.
      */
-    public function upload(ImageOptimizer $optimizer): void
+    public function addPhoto(ImageOptimizer $optimizer): void
     {
         $this->validate([
             'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'caption' => ['nullable', 'string', 'max:120'],
         ]);
 
-        Photo::query()->create([
-            'path' => $optimizer->store($this->photo),
-            'caption' => trim($this->caption),
-            'sort_order' => (int) Photo::query()->min('sort_order') - 1,
-        ]);
+        $path = $optimizer->store($this->photo);
+
+        DB::transaction(function () use ($path): void {
+            Photo::query()->increment('sort_order');
+            Photo::query()->create([
+                'path' => $path,
+                'caption' => trim($this->caption),
+                'sort_order' => 0,
+            ]);
+        });
 
         $this->reset('photo', 'caption');
         unset($this->photos);
@@ -51,11 +57,15 @@ new #[Title('Shop photos')] class extends Component {
     }
 
     /**
-     * Show a photo first, so it appears on the home page.
+     * Show a photo first, so it appears on the home page. The others move
+     * down one place (positions never go below 0).
      */
     public function makeFirst(int $id): void
     {
-        Photo::query()->whereKey($id)->update(['sort_order' => (int) Photo::query()->min('sort_order') - 1]);
+        DB::transaction(function () use ($id): void {
+            Photo::query()->whereKeyNot($id)->increment('sort_order');
+            Photo::query()->whereKey($id)->update(['sort_order' => 0]);
+        });
 
         unset($this->photos);
     }
@@ -80,17 +90,8 @@ new #[Title('Shop photos')] class extends Component {
     <flux:text class="mt-2">{{ __('Real photos of the shop and team build trust. The first photo appears on the home page; all of them appear on the About page.') }}</flux:text>
 
     <flux:card class="mt-6">
-        <form wire:submit="upload" class="space-y-5">
-            <flux:field>
-                <flux:label>{{ __('Photo') }}</flux:label>
-                <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp" class="block w-full text-sm text-zinc-700 file:me-4 file:rounded-lg file:border-0 file:bg-zinc-800 file:px-4 file:py-2 file:text-white dark:text-zinc-200 dark:file:bg-white dark:file:text-zinc-800" />
-                <flux:description>{{ __('JPG, PNG or WebP, up to 8 MB. It is resized and compressed for you.') }}</flux:description>
-                <flux:error name="photo" />
-            </flux:field>
-
-            <div wire:loading wire:target="photo">
-                <flux:text>{{ __('Uploading…') }}</flux:text>
-            </div>
+        <form wire:submit="addPhoto" class="space-y-5">
+            <x-image-upload model="photo" :label="__('Photo')" :hint="__('Any photo from your phone or computer. It is shrunk and compressed for you.')" />
 
             @if ($photo?->isPreviewable() && ! $errors->has('photo'))
                 <img src="{{ $photo->temporaryUrl() }}" alt="" class="max-h-48 rounded-lg">
@@ -98,7 +99,7 @@ new #[Title('Shop photos')] class extends Component {
 
             <flux:input wire:model="caption" :label="__('Caption (optional)')" placeholder="Our shop at 41 Ashogbon Street" />
 
-            <flux:button variant="primary" type="submit" icon="arrow-up-tray" wire:loading.attr="disabled" wire:target="photo, upload">{{ __('Add photo') }}</flux:button>
+            <flux:button variant="primary" type="submit" icon="arrow-up-tray" wire:loading.attr="disabled" wire:target="photo, addPhoto">{{ __('Add photo') }}</flux:button>
         </form>
     </flux:card>
 

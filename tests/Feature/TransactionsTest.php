@@ -147,6 +147,50 @@ test('the list can be searched by customer', function () {
         ->assertDontSee('Mr Chidi');
 });
 
+test('a new deal shows in the list even if a search was typed', function () {
+    Livewire::test('pages::admin.transactions')
+        ->set('search', 'Aut error porro')
+        ->set('typeFilter', 'sell')
+        ->set('type', 'buy')
+        ->set('currency_code', 'USD')
+        ->set('amount', '9800')
+        ->set('rate', '1450')
+        ->set('customer_name', 'Shay Walton')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSet('search', '')
+        ->assertSet('typeFilter', '')
+        ->assertSee('Shay Walton');
+});
+
+test('an empty search result offers to clear the search', function () {
+    Transaction::factory()->create(['customer_name' => 'Mr Ade']);
+
+    Livewire::test('pages::admin.transactions')
+        ->set('search', 'nobody')
+        ->assertSee('No transactions match your search.')
+        ->call('clearFilters')
+        ->assertSee('Mr Ade');
+});
+
+test('receipt pictures show as thumbnails in the list', function () {
+    $transaction = Transaction::factory()->create(['receipt_path' => 'receipts/r.webp']);
+    Storage::disk(Transaction::RECEIPT_DISK)->put('receipts/r.webp', 'large');
+    Storage::disk(Transaction::RECEIPT_DISK)->put('receipts/r-sm.webp', 'small');
+
+    Livewire::test('pages::admin.transactions')
+        ->assertSee(route('admin.transactions.receipt', ['transaction' => $transaction, 'size' => 'small']), false);
+
+    expect($this->get(route('admin.transactions.receipt', ['transaction' => $transaction, 'size' => 'small']))->streamedContent())->toBe('small')
+        ->and($this->get(route('admin.transactions.receipt', $transaction))->streamedContent())->toBe('large');
+});
+
+test('a missing receipt file gives not found', function () {
+    $transaction = Transaction::factory()->create(['receipt_path' => 'receipts/gone.webp']);
+
+    $this->get(route('admin.transactions.receipt', $transaction))->assertNotFound();
+});
+
 test('the home page shows public deals and totals without customer names', function () {
     Transaction::factory()->create(['type' => 'sell', 'currency_code' => 'USD', 'amount' => 2500, 'rate' => 1470, 'naira_total' => 3675000, 'customer_name' => 'Mrs Bisi']);
     Transaction::factory()->private()->create(['currency_code' => 'GBP', 'amount' => 999, 'naira_total' => 1000000]);

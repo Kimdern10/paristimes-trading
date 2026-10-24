@@ -3,6 +3,7 @@
 use App\Models\Currency;
 use App\Models\Photo;
 use App\Models\Setting;
+use App\Models\User;
 
 test('every public page opens', function (string $route) {
     $this->get(route($route))->assertOk();
@@ -91,6 +92,21 @@ test('robots.txt points to the sitemap and hides the admin', function () {
         ->assertSee('Disallow: /admin')
         ->assertSee('Sitemap: '.route('sitemap'));
 });
+
+test('the owner sees links back to the admin on the website', function () {
+    $this->actingAs(User::factory()->admin()->create())
+        ->get(route('home'))
+        ->assertSee('class="owner-bar"', false)
+        ->assertSee(route('dashboard'));
+});
+
+test('visitors and other users do not see the owner links', function (bool $loggedIn) {
+    if ($loggedIn) {
+        $this->actingAs(User::factory()->create());
+    }
+
+    $this->get(route('home'))->assertDontSee('class="owner-bar"', false);
+})->with(['visitor' => false, 'user who is not the owner' => true]);
 
 test('unknown pages show the branded not found page', function () {
     $this->get('/no-such-page')

@@ -63,6 +63,13 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Never let anything make the page scroll sideways. "clip" (unlike
+   "hidden") keeps the sticky header working. */
+html,
+body {
+    overflow-x: clip;
+}
+
 body {
     margin: 0;
     background: var(--bg);
@@ -1410,6 +1417,47 @@ h2 + .prose-lead,
 .wa-float svg {
     width: 28px;
     height: 28px;
+}
+
+/* Owner bar, only shown to the logged-in admin */
+
+.owner-bar {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 60;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: calc(100vw - 140px);
+    padding: 0.35rem;
+    border: 1px solid rgb(236 208 138 / 35%);
+    border-radius: 16px;
+    background: rgb(5 13 31 / 94%);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+    font-size: 0.85rem;
+}
+
+.owner-bar-label {
+    padding: 0.35rem 0.6rem;
+    border-radius: 10px;
+    background: var(--gold-400);
+    color: var(--navy-950);
+    font-weight: 700;
+}
+
+.owner-bar a {
+    padding: 0.35rem 0.6rem;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.owner-bar a:hover {
+    background: rgb(255 255 255 / 10%);
+    color: var(--gold-300);
 }
 
 /* 404 */

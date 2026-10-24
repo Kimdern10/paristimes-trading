@@ -164,9 +164,12 @@ new #[Title('Exchange rates')] class extends Component {
             <flux:text class="mt-2">{{ __('Enter today\'s rates in naira for one unit of each currency, then press Save. The home page updates straight away.') }}</flux:text>
         </div>
 
-        <flux:modal.trigger name="add-currency">
-            <flux:button icon="plus">{{ __('Add currency') }}</flux:button>
-        </flux:modal.trigger>
+        <div class="flex flex-wrap gap-2">
+            <flux:button icon="globe-alt" :href="route('home')" target="_blank">{{ __('View website') }}</flux:button>
+            <flux:modal.trigger name="add-currency">
+                <flux:button icon="plus">{{ __('Add currency') }}</flux:button>
+            </flux:modal.trigger>
+        </div>
     </div>
 
     @php($updatedAt = App\Models\Setting::ratesUpdatedAt())

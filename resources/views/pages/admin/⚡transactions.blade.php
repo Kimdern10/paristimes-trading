@@ -142,6 +142,16 @@ new #[Title('Transactions')] class extends Component {
     }
 
     /**
+     * Empty the search box and filter so every deal shows again.
+     */
+    public function clearFilters(): void
+    {
+        $this->reset('search', 'typeFilter');
+        $this->resetPage();
+        $this->clearComputed();
+    }
+
+    /**
      * Fill in the saved rate when the currency changes.
      */
     public function updatedCurrencyCode(): void
@@ -233,10 +243,15 @@ new #[Title('Transactions')] class extends Component {
                 : $optimizer->store($this->receipt, 'receipts', Transaction::RECEIPT_DISK);
         }
 
+        $isNew = ! $transaction->exists;
         $transaction->save();
 
         $this->resetForm();
         $this->clearComputed();
+
+        if ($isNew) {
+            $this->clearFilters();
+        }
 
         Flux::modal('transaction-form')->close();
         Flux::toast(variant: 'success', text: __('Transaction saved.'));
@@ -388,9 +403,9 @@ new #[Title('Transactions')] class extends Component {
         @endif
     </flux:card>
 
-    <div class="mt-6 flex flex-wrap gap-3">
-        <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search customer, currency or note')" class="max-w-sm" />
-        <flux:select wire:model.live="typeFilter" class="max-w-44">
+    <div class="mt-6 flex flex-wrap items-center gap-3">
+        <flux:input type="search" wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search customer, currency or note')" class="max-w-sm" autocomplete="off" name="transaction-search" />
+        <flux:select wire:model.live="typeFilter" class="max-w-44" autocomplete="off" name="transaction-type-filter">
             <flux:select.option value="">{{ __('All deals') }}</flux:select.option>
             @foreach (TransactionType::cases() as $case)
                 <flux:select.option value="{{ $case->value }}">{{ $case->label() }}</flux:select.option>
@@ -405,6 +420,7 @@ new #[Title('Transactions')] class extends Component {
             <flux:table.column align="end">{{ __('Rate') }}</flux:table.column>
             <flux:table.column align="end">{{ __('Total') }}</flux:table.column>
             <flux:table.column>{{ __('Customer') }}</flux:table.column>
+            <flux:table.column>{{ __('Receipt') }}</flux:table.column>
             <flux:table.column>{{ __('Website') }}</flux:table.column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
@@ -426,13 +442,17 @@ new #[Title('Transactions')] class extends Component {
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
+                        @if ($transaction->receipt_path)
+                            <x-receipt-thumb :transaction="$transaction" />
+                        @else
+                            <flux:text size="sm">—</flux:text>
+                        @endif
+                    </flux:table.cell>
+                    <flux:table.cell>
                         <flux:switch :checked="$transaction->is_public" wire:click="togglePublic({{ $transaction->id }})" :aria-label="__('Show on website')" />
                     </flux:table.cell>
                     <flux:table.cell>
-                        <div class="flex justify-end gap-1">
-                            @if ($transaction->receipt_path)
-                                <flux:button size="sm" variant="ghost" icon="paper-clip" :href="route('admin.transactions.receipt', $transaction)" target="_blank" :aria-label="__('View receipt')" />
-                            @endif
+                        <div class="flex items-center justify-end gap-1">
                             <flux:button size="sm" variant="ghost" icon="pencil-square" wire:click="edit({{ $transaction->id }})" :aria-label="__('Edit')" />
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="delete({{ $transaction->id }})" wire:confirm="{{ __('Delete this transaction?') }}" :aria-label="__('Delete')" />
                         </div>
@@ -440,8 +460,15 @@ new #[Title('Transactions')] class extends Component {
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="7">
-                        <flux:text>{{ __('No transactions yet. Add one, or upload your previous deals from a spreadsheet.') }}</flux:text>
+                    <flux:table.cell colspan="8">
+                        @if ($search !== '' || $typeFilter !== '')
+                            <div class="flex flex-wrap items-center gap-3">
+                                <flux:text>{{ __('No transactions match your search.') }}</flux:text>
+                                <flux:button size="sm" icon="x-mark" wire:click="clearFilters">{{ __('Clear search') }}</flux:button>
+                            </div>
+                        @else
+                            <flux:text>{{ __('No transactions yet. Add one, or upload your previous deals from a spreadsheet.') }}</flux:text>
+                        @endif
                     </flux:table.cell>
                 </flux:table.row>
             @endforelse
@@ -483,12 +510,21 @@ new #[Title('Transactions')] class extends Component {
             <flux:input wire:model="customer_name" :label="__('Customer (private, optional)')" />
             <flux:input wire:model="note" :label="__('Note (private, optional)')" placeholder="Paid by transfer" />
 
-            <flux:field>
-                <flux:label>{{ __('Receipt (private, optional)') }}</flux:label>
-                <input type="file" wire:model="receipt" accept="image/jpeg,image/png,image/webp,application/pdf" class="block w-full text-sm text-zinc-700 file:me-4 file:rounded-lg file:border-0 file:bg-zinc-800 file:px-4 file:py-2 file:text-white dark:text-zinc-200 dark:file:bg-white dark:file:text-zinc-800" />
-                <flux:description>{{ __('Photo or PDF, up to 8 MB. Only you can see it.') }}</flux:description>
-                <flux:error name="receipt" />
-            </flux:field>
+            <x-image-upload
+                model="receipt"
+                :label="__('Receipt picture (private, optional)')"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                :hint="__('A photo or screenshot of the receipt, or a PDF up to 2 MB. Only you can see it.')"
+            />
+
+            @if ($receipt?->isPreviewable() && ! $errors->has('receipt'))
+                <img src="{{ $receipt->temporaryUrl() }}" alt="{{ __('New receipt') }}" class="max-h-48 rounded-lg">
+            @elseif ($editingId && ($current = Transaction::query()->find($editingId))?->receipt_path)
+                <div class="flex items-center gap-3">
+                    <x-receipt-thumb :transaction="$current" />
+                    <flux:text size="sm">{{ __('Current receipt. Choose a new file to replace it.') }}</flux:text>
+                </div>
+            @endif
 
             <flux:switch wire:model="is_public" :label="__('Show as a recent deal on the website')" />
 
